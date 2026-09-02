@@ -1,0 +1,45 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { textColorOn } from '../../lib/color';
+
+export async function getStaticPaths() {
+  const colors = (await getCollection('colors')).sort(
+    (a, b) => a.data.order - b.data.order,
+  );
+  return colors.map((color) => ({
+    params: { slug: color.id },
+    props: { color, colors },
+  }));
+}
+
+const { color, colors } = Astro.props;
+const { Content } = await render(color);
+const pinyin = (color.data.slug ?? color.id).toUpperCase();
+---
+
+<Base
+  title={`${color.data.name} · 中国传统色`}
+  description={`中国传统色「${color.data.name}」：一色一诗，一色一源，一色一物。`}
+  hex={color.data.hex}
+>
+  <div class="shell">
+    <Sidebar colors={colors} currentId={color.id} />
+    <main class="article">
+      <header class="color-head">
+        <p class="kicker">{pinyin}</p>
+        <h1>{color.data.name}</h1>
+        <div
+          class="swatch-band"
+          style={`background:${color.data.hex}; color:${textColorOn(color.data.hex)}`}
+        >
+          <span class="swatch-hex">{color.data.hex}</span>
+        </div>
+      </header>
+      <article class="prose">
+        <Content />
+      </article>
+    </main>
+  </div>
+</Base>

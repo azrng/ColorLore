@@ -1,0 +1,45 @@
+---
+interface ColorItem {
+  id: string;
+  data: { name: string; slug?: string; hex: string; order: number };
+}
+
+interface Props {
+  colors: ColorItem[];
+  currentId?: string;
+}
+
+const { colors, currentId } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+---
+
+<aside class="sidebar">
+  <a class="brand" href={`${base}/`}>
+    <span class="brand-mark" aria-hidden="true">色</span>
+    <span>
+      <span class="brand-latin">ColorLore</span>
+      <span class="brand-cn">中国传统色</span>
+    </span>
+  </a>
+  <nav class="color-nav" aria-label="颜色列表">
+    {
+      colors.map((c) => (
+        <a
+          class:list={['color-item', { active: c.id === currentId }]}
+          style={`--c:${c.data.hex}`}
+          href={`${base}/color/${c.id}/`}
+        >
+          <span class="sw" aria-hidden="true" />
+          <span>
+            <span class="cn">{c.data.name}</span>
+            <span class="py">{(c.data.slug ?? c.id).toUpperCase()}</span>
+          </span>
+          <span class="hexcode">{c.data.hex}</span>
+        </a>
+      ))
+    }
+  </nav>
+  <a class="repo" href="https://github.com/azrng/ColorLore" target="_blank" rel="noopener">
+    GitHub 仓库
+  </a>
+</aside>
