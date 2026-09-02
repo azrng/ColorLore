@@ -29,3 +29,79 @@ const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
     <slot />
   </body>
 </html>
+
+<script>
+  // 图片灯箱：点击文章图片放大查看；Esc / 点遮罩 / 点图片关闭，左右方向键切换
+  let box: HTMLDialogElement | null = null;
+  let images: HTMLImageElement[] = [];
+  let index = 0;
+
+  function renderLightbox() {
+    if (!box) return;
+    const view = box.querySelector('.lightbox-img') as HTMLImageElement;
+    const source = images[index];
+    view.src = source.currentSrc || source.src;
+    view.alt = source.alt;
+    const caption = box.querySelector('.lightbox-caption');
+    if (caption) caption.textContent = source.alt;
+    const multiple = images.length > 1;
+    const counter = box.querySelector('.lightbox-counter');
+    if (counter) counter.textContent = multiple ? `${index + 1} / ${images.length}` : '';
+    box.querySelector('.lightbox-prev')?.toggleAttribute('hidden', !multiple);
+    box.querySelector('.lightbox-next')?.toggleAttribute('hidden', !multiple);
+  }
+
+  function step(delta: number) {
+    if (!images.length) return;
+    index = (index + delta + images.length) % images.length;
+    renderLightbox();
+  }
+
+  function openLightbox(target: HTMLImageElement) {
+    const scope = target.closest('.prose');
+    images = scope ? Array.from(scope.querySelectorAll('img')) : [target];
+    index = Math.max(0, images.indexOf(target));
+
+    box = document.createElement('dialog');
+    box.className = 'lightbox';
+    box.innerHTML = `
+      <img class="lightbox-img" alt="" />
+      <span class="lightbox-counter"></span>
+      <button class="lightbox-close" type="button" aria-label="关闭">×</button>
+      <button class="lightbox-nav lightbox-prev" type="button" aria-label="上一张">‹</button>
+      <button class="lightbox-nav lightbox-next" type="button" aria-label="下一张">›</button>
+      <p class="lightbox-caption"></p>
+    `;
+    box.querySelector('.lightbox-close')?.addEventListener('click', () => box?.close());
+    box.querySelector('.lightbox-prev')?.addEventListener('click', () => step(-1));
+    box.querySelector('.lightbox-next')?.addEventListener('click', () => step(1));
+    box.querySelector('.lightbox-img')?.addEventListener('click', () => box?.close());
+    box.addEventListener('click', (e) => {
+      // 点到空白遮罩处关闭
+      if (!(e.target as Element).closest('.lightbox-img, .lightbox-nav, .lightbox-close')) {
+        box?.close();
+      }
+    });
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') step(-1);
+      if (e.key === 'ArrowRight') step(1);
+    });
+    box.addEventListener('close', () => {
+      document.body.style.overflow = '';
+      box?.remove();
+      box = null;
+      images = [];
+    });
+
+    document.body.appendChild(box);
+    document.body.style.overflow = 'hidden';
+    box.showModal();
+    renderLightbox();
+  }
+
+  // 委托在 document 上，视图过渡换页后依然有效
+  document.addEventListener('click', (e) => {
+    const img = (e.target as Element).closest?.('.prose img');
+    if (img instanceof HTMLImageElement) openLightbox(img);
+  });
+</script>
