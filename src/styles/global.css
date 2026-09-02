@@ -2,7 +2,7 @@
    东方编辑风：宣纸底色，当前颜色是整站唯一的强调色。
    每个颜色页在 <html> 上注入 --accent，其余色阶全部用
    color-mix 现场调出，切换颜色时整站底色随之流动。
-   圆角体系：图片/面板 12px，色块与品牌标 8px，无胶囊。 */
+   圆角体系：图片/面板/色卡 12px，色块与输入框 8px。 */
 
 :root {
   --paper: #f4f1ea;
@@ -20,6 +20,9 @@
 }
 
 * { box-sizing: border-box; }
+
+/* 防止显式 display 覆盖 [hidden] 的默认隐藏 */
+[hidden] { display: none !important; }
 
 html { scroll-behavior: smooth; }
 
@@ -39,10 +42,10 @@ body {
   background: color-mix(in oklab, var(--accent) 30%, transparent);
 }
 
-a:focus-visible {
+a:focus-visible,
+input:focus-visible {
   outline: 2px solid var(--deep);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* ---------- 布局骨架 ---------- */
@@ -61,8 +64,8 @@ a:focus-visible {
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 2.2rem;
-  padding: 2rem 1.4rem;
+  gap: 1.1rem;
+  padding: 1.8rem 1.4rem 1.2rem;
   background: var(--side);
   border-right: 1px solid var(--line);
   transition: background-color 0.7s ease;
@@ -103,17 +106,62 @@ a:focus-visible {
   font-weight: 600;
 }
 
+.color-search {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: color-mix(in oklab, var(--accent) 12%, #ffffff);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.color-search::placeholder {
+  color: var(--ink-soft);
+}
+
+.list-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
 .color-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 1.2rem;
+  padding-right: 0.2rem;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.color-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.group-name {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 0 0.15rem;
+  padding: 0.25rem 0.15rem;
+  background: var(--side);
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  color: var(--ink-soft);
 }
 
 .color-item {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  padding: 0.65rem 0.8rem;
+  padding: 0.55rem 0.8rem;
   border-radius: 12px;
   color: var(--ink);
   text-decoration: none;
@@ -165,7 +213,6 @@ a:focus-visible {
 }
 
 .repo {
-  margin-top: auto;
   padding: 0.4rem 0.8rem;
   font-size: 0.8rem;
   color: var(--ink-soft);
@@ -185,7 +232,7 @@ a:focus-visible {
   width: 100%;
   max-width: 46rem;
   margin: 0 auto;
-  padding: 4.5rem 3rem 7rem;
+  padding: 4.5rem 3rem 5rem;
 }
 
 .kicker {
@@ -303,79 +350,193 @@ a:focus-visible {
   color: var(--ink-soft);
 }
 
-/* ---------- 首页 ---------- */
+/* ---------- 相邻颜色 ---------- */
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 4.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+
+.pager-link {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-decoration: none;
+}
+
+.pager-link .sw {
+  width: 2rem;
+  height: 2rem;
+}
+
+.pager-dir {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+}
+
+.pager-name {
+  display: block;
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+  transition: color 0.25s ease;
+}
+
+.pager-link:hover .pager-name {
+  color: var(--deep);
+}
+
+.pager-next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.pager-next .pager-name {
+  text-align: right;
+}
+
+/* ---------- 首页：色卡墙 ---------- */
 
 .cover {
-  max-width: 54rem;
+  max-width: 58rem;
   margin: 0 auto;
-  padding: min(12vh, 7rem) 2rem 6rem;
+  padding: min(10vh, 5.5rem) 2rem 6rem;
 }
 
 .cover-head h1 {
   margin: 0 0 1rem;
   font-family: var(--serif);
-  font-size: clamp(3.2rem, 9vw, 5.6rem);
+  font-size: clamp(3rem, 8vw, 5rem);
   line-height: 1.15;
   color: var(--ink);
 }
 
 .cover-sub {
-  margin: 0 0 3rem;
+  margin: 0 0 1.8rem;
   max-width: 36em;
   color: var(--ink-soft);
 }
 
-.bands {
+.cover-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.cover-tools .color-search {
+  width: min(20rem, 100%);
+  background: color-mix(in oklab, var(--accent) 8%, #ffffff);
+}
+
+.family-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.family-chip {
+  padding: 0.28rem 0.7rem;
+  font-size: 0.82rem;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  transition: background-color 0.25s ease, transform 0.25s ease;
+}
+
+.family-chip span {
+  margin-left: 0.3em;
+  font-size: 0.72em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.family-chip:hover {
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+}
+
+.family-chip:active {
+  transform: scale(0.97);
+}
+
+.family-section {
+  margin-top: 2.8rem;
+  scroll-margin-top: 1.5rem;
+}
+
+.family-name {
+  margin: 0 0 1.1rem;
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  color: var(--ink);
+}
+
+.family-name span {
+  margin-left: 0.5em;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.tiles {
   margin: 0;
   padding: 0;
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 1.2rem 1rem;
 }
 
-.band {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  min-height: 8.5rem;
-  padding: 1.3rem 1.6rem;
+.tile-swatch {
+  display: block;
+  aspect-ratio: 5 / 4;
   border-radius: 12px;
   background: var(--c);
-  color: var(--c-text);
-  text-decoration: none;
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
-.band:hover {
+.tile a {
+  display: block;
+  text-decoration: none;
+}
+
+.tile:hover .tile-swatch {
   transform: translateY(-3px);
   box-shadow:
     inset 0 0 0 1px rgb(0 0 0 / 0.08),
-    0 14px 34px color-mix(in oklab, var(--c) 45%, transparent);
+    0 10px 26px color-mix(in oklab, var(--c) 45%, transparent);
 }
 
-.band:active {
-  transform: translateY(-1px) scale(0.995);
+.tile a:active .tile-swatch {
+  transform: translateY(-1px) scale(0.99);
 }
 
-.band-name {
+.tile-name {
+  display: block;
+  margin-top: 0.55rem;
   font-family: var(--serif);
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
 }
 
-.band-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.15rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: 0.85;
+.tile-hex {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
 
@@ -389,8 +550,8 @@ a:focus-visible {
   .sidebar {
     position: static;
     height: auto;
-    gap: 1.2rem;
-    padding: 1.2rem;
+    gap: 0.9rem;
+    padding: 1.1rem;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
@@ -398,7 +559,16 @@ a:focus-visible {
   .color-nav {
     flex-direction: row;
     overflow-x: auto;
+    overflow-y: hidden;
     padding-bottom: 0.3rem;
+  }
+
+  .color-group {
+    display: contents;
+  }
+
+  .group-name {
+    display: none;
   }
 
   .color-item {
@@ -411,8 +581,21 @@ a:focus-visible {
     display: none;
   }
 
+  .list-empty {
+    flex: none;
+  }
+
   .article {
-    padding: 2.8rem 1.3rem 4.5rem;
+    padding: 2.8rem 1.3rem 4rem;
+  }
+
+  .pager {
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .pager-next {
+    margin-left: 0;
   }
 }
 
@@ -424,12 +607,15 @@ a:focus-visible {
   body,
   .sidebar,
   .color-item,
-  .band {
+  .tile-swatch,
+  .family-chip {
     transition: none;
   }
 
-  .band:hover,
-  .color-item:active {
+  .tile:hover .tile-swatch,
+  .tile a:active .tile-swatch,
+  .color-item:active,
+  .family-chip:active {
     transform: none;
   }
 }

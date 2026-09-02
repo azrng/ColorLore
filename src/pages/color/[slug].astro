@@ -17,6 +17,10 @@ export async function getStaticPaths() {
 const { color, colors } = Astro.props;
 const { Content } = await render(color);
 const pinyin = (color.data.slug ?? color.id).toUpperCase();
+const idx = colors.findIndex((c) => c.id === color.id);
+const prev = idx > 0 ? colors[idx - 1] : undefined;
+const next = idx < colors.length - 1 ? colors[idx + 1] : undefined;
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 ---
 
 <Base
@@ -40,6 +44,34 @@ const pinyin = (color.data.slug ?? color.id).toUpperCase();
       <article class="prose">
         <Content />
       </article>
+      <nav class="pager" aria-label="相邻颜色">
+        {
+          prev && (
+            <a class="pager-link" style={`--c:${prev.data.hex}`} href={`${base}/color/${prev.id}/`}>
+              <span class="sw" aria-hidden="true" />
+              <span>
+                <span class="pager-dir">上一色</span>
+                <span class="pager-name">{prev.data.name}</span>
+              </span>
+            </a>
+          )
+        }
+        {
+          next && (
+            <a
+              class="pager-link pager-next"
+              style={`--c:${next.data.hex}`}
+              href={`${base}/color/${next.id}/`}
+            >
+              <span class="sw" aria-hidden="true" />
+              <span>
+                <span class="pager-dir">下一色</span>
+                <span class="pager-name">{next.data.name}</span>
+              </span>
+            </a>
+          )
+        }
+      </nav>
     </main>
   </div>
 </Base>

@@ -1,12 +1,15 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { textColorOn } from '../lib/color';
+import { groupByFamily, colorFamily, FAMILY_NAMES } from '../lib/color';
 
 const colors = (await getCollection('colors')).sort(
   (a, b) => a.data.order - b.data.order,
 );
+const groups = groupByFamily(colors);
 const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+const searchable = (c: (typeof colors)[number]) =>
+  `${c.data.name} ${c.data.slug ?? c.id} ${c.data.hex} ${FAMILY_NAMES[colorFamily(c.data.hex)]}`.toLowerCase();
 ---
 
 <Base
@@ -17,27 +20,88 @@ const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
     <header class="cover-head">
       <h1>中国传统色</h1>
       <p class="cover-sub">
-        一色一诗，一色一源，一色一物。点开一个颜色，让整个页面染上它的底色。
+        一色一诗，一色一源，一色一物。点开一个颜色，让整个页面染上它的底色。现有
+        {colors.length} 色，持续收录。
       </p>
+      <div class="cover-tools">
+        <input
+          class="color-search"
+          type="search"
+          placeholder="搜索颜色、拼音或色值"
+          aria-label="搜索颜色"
+          data-target="#cover-list"
+          data-empty="#cover-empty"
+        />
+        <nav class="family-chips" aria-label="色系索引">
+          {
+            groups.map((g) => (
+              <a class="family-chip" href={`#fam-${g.key}`}>
+                {g.name}
+                <span>{g.colors.length}</span>
+              </a>
+            ))
+          }
+        </nav>
+      </div>
     </header>
-    <ul class="bands">
+
+    <p class="list-empty" id="cover-empty" hidden>没有找到匹配的颜色</p>
+
+    <div id="cover-list">
       {
-        colors.map((c) => (
-          <li>
-            <a
-              class="band"
-              style={`--c:${c.data.hex}; --c-text:${textColorOn(c.data.hex)}`}
-              href={`${base}/color/${c.id}/`}
-            >
-              <span class="band-name">{c.data.name}</span>
-              <span class="band-meta">
-                <span>{(c.data.slug ?? c.id).toUpperCase()}</span>
-                <span>{c.data.hex}</span>
-              </span>
-            </a>
-          </li>
+        groups.map((g) => (
+          <section class="family-section color-group" id={`fam-${g.key}`}>
+            <h2 class="family-name">
+              {g.name}
+              <span>{g.colors.length}</span>
+            </h2>
+            <ul class="tiles">
+              {g.colors.map((c) => (
+                <li
+                  class="tile"
+                  style={`--c:${c.data.hex}`}
+                  data-search={searchable(c)}
+                >
+                  <a href={`${base}/color/${c.id}/`}>
+                    <span class="tile-swatch" aria-hidden="true" />
+                    <span class="tile-name">{c.data.name}</span>
+                    <span class="tile-hex">{c.data.hex}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
         ))
       }
-    </ul>
+    </div>
   </main>
 </Base>
+
+<script>
+  // 搜索过滤：输入事件委托在 document 上，页面切换后依然有效
+  function handleSearch(input: HTMLInputElement) {
+    const q = input.value.trim().toLowerCase();
+    const scope = document.querySelector(input.dataset.target ?? '');
+    if (!scope) return;
+    let matched = 0;
+    scope.querySelectorAll('.color-group').forEach((group) => {
+      let visible = 0;
+      group.querySelectorAll('[data-search]').forEach((item) => {
+        const hit = !q || (item.getAttribute('data-search') ?? '').includes(q);
+        item.toggleAttribute('hidden', !hit);
+        if (hit) visible++;
+      });
+      group.toggleAttribute('hidden', visible === 0);
+      matched += visible;
+    });
+    const empty = input.dataset.empty
+      ? document.querySelector(input.dataset.empty)
+      : null;
+    if (empty) empty.toggleAttribute('hidden', !(q && matched === 0));
+  }
+
+  document.addEventListener('input', (e) => {
+    const input = (e.target as Element).closest('.color-search');
+    if (input instanceof HTMLInputElement) handleSearch(input);
+  });
+</script>
