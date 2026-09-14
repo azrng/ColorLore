@@ -2,10 +2,10 @@ import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const colors = defineCollection({
-  // 文章直接以仓库根目录的 md 文件为数据源（README 除外）
+  // 颜色文章统一放在 content/ 目录
   loader: glob({
-    pattern: ['*.md', '!README.md'],
-    base: './',
+    pattern: '*.md',
+    base: './contents',
     generateId: ({ entry, data }) =>
       (data?.slug as string | undefined) ?? entry.replace(/\.md$/, ''),
   }),

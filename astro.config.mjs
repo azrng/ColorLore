@@ -13,7 +13,7 @@ function remarkContentImages() {
   return (tree) => {
     visit(tree, 'image', (node) => {
       if (/^(https?:|data:|#|\/)/i.test(node.url)) return;
-      node.url = `${BASE}/${node.url.replace(/^\.\//, '')}`;
+      node.url = `${BASE}/${node.url.replace(/^(\.\.?\/)+/, '')}`;
     });
   };
 }
@@ -86,9 +86,9 @@ const MIME = {
   '.avif': 'image/avif',
 };
 
-/** 仓库根目录的 images/ 保持原位（GitHub 上也要能预览）：开发时用中间件伺服，构建时拷进 dist */
+/** 图片统一放在 contents/images/（md 相对引用，GitHub 上也能预览）：开发时用中间件伺服，构建时拷进 dist */
 function contentImages() {
-  const imagesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'images');
+  const imagesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'contents', 'images');
   return {
     name: 'content-images',
     hooks: {
